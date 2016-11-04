@@ -1,2 +1,2 @@
-  GITLAB_URL:https://your.gitlab.uri
-  PRIVATE_TOKEN:YOUR_TOKEN
+  GITLAB_URL: https://your.gitlab.uri
+  PRIVATE_TOKEN: YOUR_TOKEN
