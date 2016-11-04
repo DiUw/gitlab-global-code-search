@@ -12,7 +12,7 @@ class GitlabCodeSearcher
 
   def initialize
     @conf = YAML.load_file(File.join(__dir__, 'config.yml'))
-    cputs('Configured GitLab repo :', @conf[GITLAB_URL], GREEN)
+    cputs('Configured GitLab repo :', @conf['GITLAB_URL'], GREEN)
   end
 
   # Be more readable on ANSI consoles. Use less -R to see nice output if stored in file
@@ -26,7 +26,8 @@ class GitlabCodeSearcher
 
     projects = []
     i = 0
-    until (part = `curl "#{@conf[GITLAB_URL]}/api/v3/projects/all?page=#{i += 1}&per_page=100&private_token=#{@conf[PRIVATE_TOKEN]}"`).eql? '[]'
+    until (part = `curl "#{@conf['GITLAB_URL']}/api/v3/projects/all?page=#{i += 1}&per_page=100&private_token=#{@conf['PRIVATE_TOKEN']}"`).eql? '[]'
+
       puts "Adding #{i}th 100 entries"
       projects << JSON.parse(part).flatten
     end
@@ -35,7 +36,7 @@ class GitlabCodeSearcher
 
   # search in one gitlab Project
   def search_in_project(id, name, _url, what)
-    res = `curl -s --header "PRIVATE-TOKEN: #{@conf[PRIVATE_TOKEN]}" '#{@conf[GITLAB_URL]}/search?utf8=%E2%9C%93&search=#{what}&group_id=&project_id=#{id}&search_code=true&repository_ref=master'`
+    res = `curl -s --header "PRIVATE-TOKEN: #{@conf['PRIVATE_TOKEN']}" '#{@conf['GITLAB_URL']}/search?utf8=%E2%9C%93&search=#{what}&group_id=&project_id=#{id}&search_code=true&repository_ref=master'`
     if res.include?("We couldn't find any results matching") || !res.include?('fa fa-file')
       cputs "In project '#{name}' ... nothing", '', BLUE
       return
@@ -50,7 +51,7 @@ class GitlabCodeSearcher
       next unless block.include? 'class="line"'
       name = block.split('</strong>')[0].delete!("\n")
 
-      cputs "\nFound in '#{name}'", "#{@conf[GITLAB_URL]}/#{links[i += 1]}", BLUE
+      cputs "\nFound in '#{name}'", "#{@conf['GITLAB_URL']}/#{links[i += 1]}", BLUE
 
       block.split("\n").grep(/class="line"/).each do |line|
         str = line.gsub(/(<[^>]*>)|\n|\t/su) { ' ' }
