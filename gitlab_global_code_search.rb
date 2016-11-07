@@ -4,20 +4,34 @@ require 'optparse'
 require 'yaml'
 
 class GitlabCodeSearcher
-  # Some ansi for better readability
-  BLUE = "\033[34m"
-  GREEN = "\033[32m"
-  MAGENTA = "\033[35m"
-  NC = "\033[0m"
 
   def initialize
     @conf = YAML.load_file(File.join(__dir__, 'config.yml'))
-    cputs('Configured GitLab repo :', @conf['GITLAB_URL'], GREEN)
+    if (@conf['COLOUR'])
+      # Some ansi for better readability
+      @BLUE = "\033[34m"
+      @GREEN = "\033[32m"
+      @MAGENTA = "\033[35m"
+      @RED = "\033[31m"
+      @NC = "\033[0m"
+    else
+      @BLUE = ""
+      @GREEN = ""
+      @MAGENTA = ""
+      @RED = ""
+      @NC = ""
+    end
+    @err = true
+    cputs('Configured GitLab repo :', @conf['GITLAB_URL'], @GREEN, @err)
   end
 
   # Be more readable on ANSI consoles. Use less -R to see nice output if stored in file
-  def cputs(what, what1 = '', color = BLUE)
-    puts "#{color}#{what}#{NC} #{what1}"
+  def cputs(what, what1 = '', color = @BLUE, stderr = false)
+    if (stderr)
+      STDERR.puts "#{color}#{what}#{@NC} #{what1}"
+    else
+      STDOUT.puts "#{color}#{what}#{@NC} #{what1}"
+    end
   end
 
   # Loads all projects into local file. Page by page, 100 entries each
@@ -35,14 +49,14 @@ class GitlabCodeSearcher
 
   # search in one gitlab Project
   def search_in_project(id, name, _url, what)
-    res = `curl -s --header "PRIVATE-TOKEN: #{@conf['PRIVATE_TOKEN']}" '#{@conf['GITLAB_URL']}/search?utf8=%E2%9C%93&search=#{what}&group_id=&project_id=#{id}&search_code=true&repository_ref=master'`
+    res = `curl -s --cookie 'remember_user_token=#{@conf['REMEMBER_USER_TOKEN']}' --header "PRIVATE-TOKEN: #{@conf['PRIVATE_TOKEN']}" '#{@conf['GITLAB_URL']}/search?utf8=%E2%9C%93&search=#{what}&group_id=&project_id=#{id}&search_code=true&repository_ref=master'`
     if res.include?("We couldn't find any results matching") || !res.include?('fa fa-file')
-      cputs "In project '#{name}' ... nothing", '', BLUE
+      cputs "In project '#{name}' ... nothing", '', @BLUE, @err
       return
     end
 
-    cputs "In project '#{name}'", '', BLUE
-    cputs '************************************', '', BLUE
+    cputs "In project '#{name}'", '', @MAGENTA, @err
+    cputs '************************************', '', @MAGENTA, @err
 
     links = res.split("\n").grep(/fa fa-file/).map { |el| el.split('">')[0].split('<a href="')[1] }
     i = -1
@@ -50,11 +64,11 @@ class GitlabCodeSearcher
       next unless block.include? 'class="line"'
       name = block.split('</strong>')[0].delete!("\n")
 
-      cputs "\nFound in '#{name}'", "#{@conf['GITLAB_URL']}/#{links[i += 1]}", BLUE
+      cputs "\nFound in '#{name}'", "#{@conf['GITLAB_URL']}/#{links[i += 1]}", @RED
 
       block.split("\n").grep(/class="line"/).each do |line|
         str = line.gsub(/(<[^>]*>)|\n|\t/su) { ' ' }
-        puts str.gsub /#{what}/i, "#{GREEN}#{what}#{NC}"
+        puts str.gsub /#{what}/i, "#{@GREEN}#{what}#{@NC}"
       end
     end
   end
@@ -62,10 +76,10 @@ class GitlabCodeSearcher
   # Loads all projects into local file. Page by page, 100 entries each
   def search(what, namespaces, recache)
     puts
-    cputs('Searching for :', '', GREEN)
-    cputs('What =', what, GREEN)
-    cputs('In namespaces =', namespaces, GREEN)
-    cputs('Recaching repo list before search =', recache, GREEN)
+    cputs('Searching for :', '', @GREEN, @err)
+    cputs('What =', what, @GREEN, @err)
+    cputs('In namespaces =', namespaces, @GREEN, @err)
+    cputs('Recaching repo list before search =', recache, @GREEN, @err)
     puts
 
     rehash_gitlab_projects if recache || !File.file?('projects.txt')
