@@ -35,7 +35,7 @@ class GitlabCodeSearcher
   end
 
   # Loads all projects into local file. Page by page, 100 entries each
-  def rehash_gitlab_projects
+  def recache_gitlab_projects
     cputs('Loading project list from GitLab to local projects.txt', '', @MAGENTA, @err)
 
     projects = []
@@ -82,7 +82,7 @@ class GitlabCodeSearcher
     cputs('Recaching repo list before search =', recache, @GREEN, @err)
     puts
 
-    rehash_gitlab_projects if recache || !File.file?('projects.txt')
+    recache_gitlab_projects if recache || !File.file?('projects.txt')
 
     projects = File.read('projects.txt')
     JSON.parse(projects).each do |el|
@@ -94,11 +94,11 @@ end
 
 # If script is run, execute. Spec run skips this section
 $dryrun = false
-$rehash = false
+$recache = false
 
 parser = OptionParser.new do |opt|
   opt.on('-r', '--recache') do |_arg|
-    $rehash = true
+    $recache = true
   end
   opt.on('-s', '--search-string SEARCH_STRING', '[REQUIRED]') do |str|
     $search_string = str
