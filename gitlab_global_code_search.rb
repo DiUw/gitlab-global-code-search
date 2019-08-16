@@ -40,7 +40,7 @@ class GitlabCodeSearcher
 
     projects = []
     i = 0
-    until (part = `curl "#{@conf['GITLAB_URL']}/api/v3/projects/all?page=#{i += 1}&per_page=100&private_token=#{@conf['PRIVATE_TOKEN']}"`).eql? '[]'
+    until (part = `curl "#{@conf['GITLAB_URL']}/api/v4/projects/?page=#{i += 1}&per_page=100&private_token=#{@conf['PRIVATE_TOKEN']}"`).eql? '[]'
       cputs("Adding #{i}th 100 entries", '', @GREEN, @err)
       projects << JSON.parse(part).flatten
     end
