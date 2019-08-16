@@ -6,11 +6,11 @@ Will search through all known Gitlab projects on YOUR own instrance of GitLab.
 
 *Before the first run, please replace 4 params in **config.yml**:*
 
-*Script was tested on Gitlab community version 11.1*
+*Script was tested on Gitlab community version 11.8.1*
 
 
 ```yaml
-GITLAB_URL: https://your.gitlab.uri   (What is your Gitlab url)
+GITLAB_URL: https://your.gitlab.uri   (What is your Gitlab url, use http:// if https:// isn't configured)
 PRIVATE_TOKEN: YOUR_TOKEN (Token to use to talk to gitlab. Needs to be admin token)
 REMEMBER_USER_TOKEN: YOUR_COOKIE_TOKEN (Your gitlab login cookie token)
 COLOUR: true (if 'false', results are printed in monochrome)
